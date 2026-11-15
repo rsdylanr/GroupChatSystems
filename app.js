@@ -1,12 +1,8 @@
-import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+import { supabase } from './supabase.js';
+import { pingAppwrite } from './appwrite.js';
 
-// ---------- CONFIG ----------
-const SUPABASE_URL = 'YOUR_PROJECT_URL';
-const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY';
+pingAppwrite();
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-// ---------- STATE ----------
 const state = {
   user: null,
   roomId: null,
@@ -17,7 +13,6 @@ const state = {
   role: 'member',
 };
 
-// ---------- DOM ----------
 const $ = (id) => document.getElementById(id);
 
 const statusEl = $('status');
@@ -40,7 +35,6 @@ const addSideBtn = $('add-side');
 const addCategoryBtn = $('add-category');
 const resolveBtn = $('resolve');
 
-// ---------- HELPERS ----------
 const setStatus = (text) => {
   statusEl.textContent = text;
 };
@@ -69,7 +63,6 @@ const getRole = async (roomId) => {
   return data.role;
 };
 
-// ---------- AUTH ----------
 const signIn = async () => {
   const { data, error } = await supabase.auth.signInAnonymously();
 
@@ -86,7 +79,6 @@ const signIn = async () => {
 
 signInBtn.addEventListener('click', signIn);
 
-// ---------- ROOM ----------
 const createRoom = async () => {
   const code = `room-${Math.random().toString(36).slice(2, 8)}`;
 
@@ -101,7 +93,6 @@ const createRoom = async () => {
     return;
   }
 
-  // Creator becomes board_master
   const { error: memberError } = await supabase
     .from('room_members')
     .insert({
@@ -137,7 +128,6 @@ const joinRoom = async () => {
     return;
   }
 
-  // Join as member
   const { error: joinError } = await supabase
     .from('room_members')
     .insert({
@@ -146,7 +136,6 @@ const joinRoom = async () => {
       role: 'member',
     });
 
-  // Ignore duplicate-join error
   if (joinError && joinError.code !== '23505') {
     setStatus(`Join failed: ${joinError.message}`);
     return;
@@ -158,7 +147,6 @@ const joinRoom = async () => {
 createRoomBtn.addEventListener('click', createRoom);
 joinRoomBtn.addEventListener('click', joinRoom);
 
-// ---------- LOAD ROOM ----------
 const loadRoom = async (roomId, roomCode) => {
   state.roomId = roomId;
   state.roomCode = roomCode;
@@ -169,11 +157,7 @@ const loadRoom = async (roomId, roomCode) => {
   show(boardPanel, true);
   setStatus(`Role: ${state.role}`);
 
-  await Promise.all([
-    loadSides(),
-    loadCategories(),
-    loadEntries(),
-  ]);
+  await Promise.all([loadSides(), loadCategories(), loadEntries()]);
 
   subscribeToEntries();
   render();
@@ -224,7 +208,6 @@ const loadEntries = async () => {
   state.entries = data;
 };
 
-// ---------- REALTIME ----------
 const subscribeToEntries = () => {
   supabase
     .channel(`room-${state.roomId}`)
@@ -238,7 +221,6 @@ const subscribeToEntries = () => {
     .subscribe();
 };
 
-// ---------- RENDER ----------
 const render = () => {
   renderComparison();
   renderSideSelect();
@@ -320,7 +302,6 @@ const renderAdminVisibility = () => {
   show(resolveBtn, isAdmin);
 };
 
-// ---------- ENTRY ACTIONS ----------
 const submitEntry = async () => {
   const sideId = sideSelect.value;
   const categoryId = categorySelect.value || null;
@@ -382,10 +363,11 @@ const confirmEntry = async (entryId) => {
 
 submitEntryBtn.addEventListener('click', submitEntry);
 
-// ---------- ADMIN ACTIONS ----------
 const addSide = async () => {
   const name = prompt('Side name:');
-  if (!name) return;
+  if (!name) {
+    return;
+  }
 
   const { error } = await supabase.from('sides').insert({
     room_id: state.roomId,
@@ -403,7 +385,9 @@ const addSide = async () => {
 
 const addCategory = async () => {
   const name = prompt('Category name:');
-  if (!name) return;
+  if (!name) {
+    return;
+  }
 
   const points = parseInt(prompt('Points for this category:'), 10);
   if (!points || points < 1) {
@@ -440,7 +424,7 @@ const resolve = () => {
   const max = Math.max(...totals.map((t) => t.points));
   const winners = totals.filter((t) => t.points === max);
 
-  if (winners.length === 0) {
+  if (winners.length === 0 || max === 0) {
     alert('No confirmed entries yet');
     return;
   }
