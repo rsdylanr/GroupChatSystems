@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Argument Board</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>Argument Board</h1>
+    <p id="status">Not signed in</p>
+  </header>
+
+  <main>
+    <!-- Sign-in / room panel -->
+    <section id="auth-panel">
+      <button id="sign-in">Sign in anonymously</button>
+
+      <div id="room-actions" hidden>
+        <h2>Create or join a room</h2>
+        <input id="room-code" placeholder="Room code" autocomplete="off">
+        <button id="join-room">Join</button>
+        <button id="create-room">Create new room</button>
+      </div>
+    </section>
+
+    <!-- Main board -->
+    <section id="board-panel" hidden>
+      <h2 id="room-name"></h2>
+
+      <div id="comparison-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Side</th>
+              <th>Confirmed points</th>
+            </tr>
+          </thead>
+          <tbody id="comparison-body"></tbody>
+        </table>
+      </div>
+
+      <div id="entry-form">
+        <h3>Add an entry</h3>
+        <select id="side-select"></select>
+        <select id="category-select">
+          <option value="">— Custom points —</option>
+        </select>
+        <input id="points-input" type="number" placeholder="Points" min="1">
+        <input id="description-input" type="text" placeholder="What happened?">
+        <button id="submit-entry">Submit (pending)</button>
+      </div>
+
+      <div id="entries-list">
+        <h3>Entries</h3>
+        <ul id="entries-ul"></ul>
+      </div>
+
+      <div id="admin-panel">
+        <h3>Admin</h3>
+        <button id="add-side">Add side</button>
+        <button id="add-category">Add category</button>
+        <button id="resolve">Resolve (declare winner)</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
